@@ -29,7 +29,6 @@ def gilbert_elliott_channel(bits: List[int], p_gb: float, p_bg: float,
     state = 'G'
     out = []
     for bit in bits:
-        # decyzja o zmianie stanu (przed generacją błędu) zgodnie z dotychczasowym zachowaniem
         if state == 'G':
             if rnd.random() < p_gb:
                 state = 'B'

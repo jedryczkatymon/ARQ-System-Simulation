@@ -19,7 +19,6 @@ Uwagi:
 - Wejścia zakładają wartości 0/1; brak ścisłej walidacji długości czy zakresów.
 """
 
-# Parity (even)
 def parity_encode(data_bits: List[int]) -> List[int]:
     p = sum(data_bits) % 2
     return data_bits + [p]
@@ -29,7 +28,6 @@ def parity_check(rx_bits: List[int]) -> Tuple[bool, List[int]]:
     ok = (sum(data) + p) % 2 == 0
     return ok, data
 
-# Hamming(7,4) - basic for 4-bit nibble
 def hamming74_encode(nibble: List[int]) -> List[int]:
     d = nibble + [0,0,0]
     d1,d2,d3,d4 = nibble
@@ -65,7 +63,6 @@ def hamming74_check_and_extract(rx7: List[int]) -> Tuple[bool, List[int]]:
     data = [d1c,d2c,d3c,d4c]
     return ok, data
 
-# CRC32 append/check (byte-oriented)
 def crc32_append(data_bits: List[int]) -> List[int]:
     data_bytes = bits_to_bytes(data_bits)
     crc = binascii.crc32(data_bytes) & 0xffffffff
@@ -81,8 +78,6 @@ def crc32_check(rx_bits: List[int]) -> Tuple[bool, List[int]]:
     crc_expected = int.from_bytes(bits_to_bytes(crc_bits), 'big')
     crc_calc = binascii.crc32(data_bytes) & 0xffffffff
     return crc_calc == crc_expected, data_bits
-
-# --- nowe funkcje: CRC8, CRC16, Internet Checksum (16-bit) ---
 
 def _crc8_bytes(data: bytes, poly: int = 0x07, init: int = 0x00) -> int:
     crc = init
@@ -134,7 +129,6 @@ def crc16_check(rx_bits: List[int]) -> Tuple[bool, List[int]]:
 
 def _internet_checksum_bytes(data: bytes) -> int:
     s = 0
-    # process 16-bit words, big-endian
     it = iter(data)
     for hi in it:
         try:
@@ -144,9 +138,7 @@ def _internet_checksum_bytes(data: bytes) -> int:
         word = (hi << 8) | lo
         s += word
         s = (s & 0xffff) + (s >> 16)
-    # final wrap-around
     s = (s & 0xffff) + (s >> 16)
-    # one's complement
     return (~s) & 0xffff
 
 def checksum16_append(data_bits: List[int]) -> List[int]:
