@@ -2,6 +2,7 @@ from generator import random_bitstream, packetize
 from coder import checksum16_append, checksum16_check, crc16_append, crc16_check, crc8_append, crc8_check, hamming74_check_bits, parity_encode, parity_check, crc32_append, crc32_check, hamming74_encode_bits, hamming74_check_and_extract
 from channel import bsc_channel, gilbert_elliott_channel
 from arq import stop_and_wait
+from analysis import analyze_results
 import argparse
 
 """
@@ -33,36 +34,42 @@ def main():
             'check': lambda r: parity_check(r),
             'tx_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+1000000))),
+            'channel': 'BSC',
         },
         'CRC32': {
             'encode': lambda p: crc32_append(p),
             'check': lambda r: crc32_check(r),
             'tx_factory': lambda s: (lambda b: gilbert_elliott_channel(b, p_gb=0.001, p_bg=0.1, err_good=0.001, err_bad=0.1, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+2000000))),
+            'channel': 'Gilbert-Elliott',
         },
         'CRC8': {
             'encode': lambda p: crc8_append(p),
             'check': lambda r: crc8_check(r),
             'tx_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+3000000))),
+            'channel': 'BSC',
         },
         'CRC16': {
             'encode': lambda p: crc16_append(p),
             'check': lambda r: crc16_check(r),
             'tx_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+4000000))),
+            'channel': 'BSC',
         },
         'Checksum16': {
             'encode': lambda p: checksum16_append(p),
             'check': lambda r: checksum16_check(r),
             'tx_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+5000000))),
+            'channel': 'BSC',
         },
         'Hamming74': {
             'encode': lambda p: hamming74_encode_bits(p),
             'check': lambda r: hamming74_check_bits(r),
             'tx_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=s)),
             'ack_factory': lambda s: (lambda b: bsc_channel(b, p_flip=0.01, seed=(None if s is None else s+6000000))),
+            'channel': 'BSC',
         }
     }
 
@@ -109,6 +116,8 @@ def main():
         avg_retries_per_packet = (a['sum_retries'] / a['count_retries']) if a['count_retries'] else 0
         efficiency = (avg_payload / avg_sent) if avg_sent else 0
         print(f"{name}: avg_sent_bits={avg_sent:.1f}, avg_payload_bits={avg_payload:.1f}, avg_retries_per_packet={avg_retries_per_packet:.3f}, avg_undetected_errors_per_run={avg_undetected:.3f}, efficiency={efficiency:.4f}")
+
+    analyze_results(agg, N_RUNS, experiments)
 
 if __name__ == "__main__":
     main()
